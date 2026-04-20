@@ -278,9 +278,45 @@ def slide_3_track(prs):
                "Python + NumPy / SciPy 기반", size=20)
 
 
-def slide_4_model(prs):
+def slide_4_cda(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    make_slide_header(slide, 4, "Model", "물리 모델")
+    make_slide_header(slide, 4, "What is CDA?", "CDA란?")
+
+    shape = slide.shapes.add_shape(
+        1, Inches(1.0), Inches(1.6), Inches(11.3), Inches(5.0)
+    )
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = HIGHLIGHT_BG
+    shape.line.color.rgb = TITLE_COLOR
+    shape.line.width = Pt(1.5)
+
+    tf = shape.text_frame
+    tf.word_wrap = True
+    set_text(tf, "Coupled Dipole Approximation (CDA)", size=26, color=TITLE_COLOR, bold=True,
+             alignment=PP_ALIGN.CENTER)
+    add_paragraph(tf, "", size=8)
+
+    items = [
+        ("Proposed by Purcell & Pennypacker (1973)",
+         "1973년 Purcell & Pennypacker가 성간 먼지 산란 계산을 위해 제안"),
+        ("Each scatterer → single point dipole with polarizability α",
+         "각 산란체를 분극률 α를 가진 점 쌍극자 하나로 근사"),
+        ("Dipoles interact via free-space Green's function → self-consistent solution",
+         "쌍극자 간 자유 공간 Green 함수로 상호작용 → 자기 일관적 풀이"),
+        ("Also known as DDA (Discrete Dipole Approximation)",
+         "넓은 맥락에서 DDA (Discrete Dipole Approximation)로도 불림"),
+        ("Standard tool in nanophotonics, plasmonics, and metasurface analysis",
+         "나노포토닉스, 플라즈모닉스, 메타서페이스 분야에서 널리 사용되는 표준 도구"),
+    ]
+    for en, kr in items:
+        add_paragraph(tf, f"▸  {en}", size=18, color=TEXT_COLOR, bold=True,
+                      space_before=Pt(10))
+        add_paragraph(tf, f"    {kr}", size=16, color=MUTED_COLOR, space_before=Pt(0))
+
+
+def slide_5_model(prs):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    make_slide_header(slide, 5, "Model", "물리 모델")
 
     y = Inches(1.5)
     left = Inches(0.8)
@@ -349,9 +385,9 @@ def slide_4_model(prs):
         add_paragraph(tf6, f"  {desc}", size=14, color=TEXT_COLOR, space_before=Pt(0))
 
 
-def slide_5_io(prs):
+def slide_6_io(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    make_slide_header(slide, 5, "Input / Output", "입출력")
+    make_slide_header(slide, 6, "Input / Output", "입출력")
 
     # Input
     tb = add_textbox(slide, Inches(0.8), Inches(1.6), Inches(5.5), Inches(4.5))
@@ -395,9 +431,9 @@ def slide_5_io(prs):
         Inches(7.3), y_eq, fontsize=20)
 
 
-def slide_6_metric(prs):
+def slide_7_metric(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    make_slide_header(slide, 6, "Quantitative Metrics", "측정 지표")
+    make_slide_header(slide, 7, "Quantitative Metrics", "측정 지표")
 
     left = Inches(0.8)
     y = Inches(1.6)
@@ -430,9 +466,9 @@ def slide_6_metric(prs):
                   size=14, color=MUTED_COLOR, space_before=Pt(0))
 
 
-def slide_7_comparison(prs):
+def slide_8_comparison(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    make_slide_header(slide, 7, "Controlled Comparison", "비교 실험 설계")
+    make_slide_header(slide, 8, "Controlled Comparison", "비교 실험 설계")
 
     # Main comparison table
     tb = add_textbox(slide, Inches(0.8), Inches(1.5), Inches(5.5), Inches(0.5))
@@ -483,9 +519,9 @@ def slide_7_comparison(prs):
                   space_before=Pt(0))
 
 
-def slide_8_verification(prs):
+def slide_9_verification(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    make_slide_header(slide, 8, "Verification Plan", "검증 계획")
+    make_slide_header(slide, 9, "Verification Plan", "검증 계획")
 
     checks = [
         ("1. Analytical Comparison | 해석해 비교",
@@ -528,9 +564,9 @@ def slide_8_verification(prs):
             add_paragraph(tf, f"  • {item}", size=13, color=TEXT_COLOR)
 
 
-def slide_9_success(prs):
+def slide_10_success(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    make_slide_header(slide, 9, "Success Criteria", "성공 기준")
+    make_slide_header(slide, 10, "Success Criteria", "성공 기준")
 
     # Minimum
     shape1 = slide.shapes.add_shape(
@@ -600,12 +636,13 @@ def main():
     slide_1_context(prs)       # 1. Research Context
     slide_2_question(prs)      # 2. Research Question
     slide_3_track(prs)         # 3. Track A
-    slide_4_model(prs)         # 4. Model
-    slide_5_io(prs)            # 5. Input / Output
-    slide_6_metric(prs)        # 6. Metrics
-    slide_7_comparison(prs)    # 7. Controlled Comparison
-    slide_8_verification(prs)  # 8. Verification
-    slide_9_success(prs)       # 9. Success Criteria
+    slide_4_cda(prs)           # 4. What is CDA?
+    slide_5_model(prs)         # 5. Model
+    slide_6_io(prs)            # 6. Input / Output
+    slide_7_metric(prs)        # 7. Metrics
+    slide_8_comparison(prs)    # 8. Controlled Comparison
+    slide_9_verification(prs)  # 9. Verification
+    slide_10_success(prs)      # 10. Success Criteria
 
     prs.save(PPTX_PATH)
     print(f"PPT saved: {PPTX_PATH}")

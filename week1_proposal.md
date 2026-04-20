@@ -35,7 +35,26 @@
 
 ---
 
-## 4. Model | 모델
+## 4. What is CDA? | CDA란?
+
+- Proposed by Purcell & Pennypacker (1973) for computing scattering from interstellar dust
+- Purcell & Pennypacker (1973)가 성간 먼지의 산란 계산을 위해 제안
+
+- Each scatterer approximated as a **single point dipole** with polarizability α
+- 각 산란체를 분극률 α를 가진 **점 쌍극자 하나**로 근사
+
+- Dipoles interact via **free-space Green's function** → self-consistent solution
+- 쌍극자 간 **자유 공간 Green 함수**로 상호작용 → 자기 일관적(self-consistent) 풀이
+
+- Also known as **DDA (Discrete Dipole Approximation)** in broader context
+- 넓은 맥락에서는 **DDA (Discrete Dipole Approximation)** 로도 불림
+
+- Widely used in nanophotonics, plasmonics, and metasurface analysis
+- 나노포토닉스, 플라즈모닉스, 메타서페이스 분석에서 널리 사용
+
+---
+
+## 5. Model | 모델
 
 - Each meta-atom modeled as a point dipole | 각 메타 원자를 점 쌍극자로 모델링:
   - $p_i = \alpha_i \, E_{\text{loc},i}$
@@ -57,7 +76,7 @@
 
 ---
 
-## 5. Input / Output | 입출력
+## 6. Input / Output | 입출력
 
 **Input | 입력**: Wavelength λ, array period P (0.5λ ~ 2.0λ), number of meta-atoms N, polarizability α
 
@@ -65,7 +84,7 @@
 
 ---
 
-## 6. Metric | 측정 지표
+## 7. Metric | 측정 지표
 
 - **Mean phase deviation | 평균 위상 편차**:
   - $\overline{\Delta\varphi} = \frac{1}{N}\sum|\arg(p_i^{\text{coupled}}) - \arg(p_i^{\text{isolated}})|$
@@ -75,7 +94,7 @@
 
 ---
 
-## 7. Success Criteria | 성공 기준
+## 8. Success Criteria | 성공 기준
 
 1. CDA code runs and computes dipole moments | CDA 코드가 동작하여 쌍극자 모멘트를 계산
 2. Extract phase deviation: isolated vs coupled | 고립 vs 커플링 위상 편차 추출
