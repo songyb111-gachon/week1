@@ -52,6 +52,32 @@ def render_latex(latex_str: str, fontsize: int = 22, dpi: int = 200) -> str:
     return fname
 
 
+def render_code(code: str, fontsize: int = 14, dpi: int = 200) -> str:
+    """Render Python code as a PNG with monospace font + light bg."""
+    fname = os.path.join(EQ_DIR, f"w2_code_{hash(code) & 0xFFFFFFFF:08x}.png")
+    if os.path.exists(fname):
+        return fname
+    n_lines = code.count("\n") + 1
+    max_w = max(len(line) for line in code.splitlines() or [""])
+    fig_w = max(max_w * fontsize * 0.0085, 4.0)
+    fig_h = max(n_lines * fontsize * 0.024, 0.3)
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+    ax.axis("off")
+    fig.patch.set_facecolor("#F8FAFC")
+    ax.text(
+        0.01, 0.98, code,
+        fontsize=fontsize,
+        family="DejaVu Sans Mono",
+        color="#222222",
+        ha="left", va="top",
+        transform=ax.transAxes,
+    )
+    fig.savefig(fname, dpi=dpi, facecolor=fig.get_facecolor(),
+                bbox_inches="tight", pad_inches=0.18)
+    plt.close(fig)
+    return fname
+
+
 def set_slide_bg(slide, color=BG_COLOR):
     fill = slide.background.fill
     fill.solid()
@@ -240,9 +266,93 @@ def slide_baseline(prs):
                       space_before=Pt(0))
 
 
+def slide_code_walkthrough(prs):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    make_slide_header(slide, 3, "Code Walk-Through", "핵심 코드 설명")
+
+    # ----- Top-left: Green's function -----
+    tb = add_textbox(slide, Inches(0.6), Inches(1.5), Inches(6.0), Inches(0.5))
+    set_text(tb.text_frame, "(a) Green's function | Green 함수",
+             size=16, color=ACCENT_COLOR, bold=True)
+    add_equation_image(slide,
+        r"G(r) = \frac{i}{4} H_0^{(1)}(k_0 r)",
+        Inches(0.7), Inches(2.0), max_height=Inches(0.5), fontsize=18)
+
+    code_a = (
+        "def greens_2d(r, k0=K0):\n"
+        "    return 0.25j * hankel1(0, k0 * r)"
+    )
+    code_a_img = render_code(code_a, fontsize=13)
+    add_image_fit(slide, code_a_img,
+                  Inches(0.6), Inches(2.7),
+                  Inches(6.0), Inches(1.0))
+
+    # ----- Top-right: Interaction matrix -----
+    tb2 = add_textbox(slide, Inches(6.9), Inches(1.5), Inches(6.0), Inches(0.5))
+    set_text(tb2.text_frame, "(b) Interaction matrix | 상호작용 행렬",
+             size=16, color=ACCENT_COLOR, bold=True)
+
+    code_b = (
+        "def build_interaction_matrix(positions, alphas, k0=K0):\n"
+        "    dx = positions[:, None] - positions[None, :]\n"
+        "    r  = np.abs(dx)\n"
+        "    np.fill_diagonal(r, 1.0)            # avoid r=0\n"
+        "    A = -greens_2d(r, k0=k0)             # off-diag: -G(r_ij)\n"
+        "    np.fill_diagonal(A, 1.0 / alphas)    # diag: 1/alpha\n"
+        "    return A"
+    )
+    code_b_img = render_code(code_b, fontsize=12)
+    add_image_fit(slide, code_b_img,
+                  Inches(6.9), Inches(2.0),
+                  Inches(6.2), Inches(1.9))
+
+    # ----- Bottom-left: Solver -----
+    tb3 = add_textbox(slide, Inches(0.6), Inches(4.1), Inches(6.0), Inches(0.5))
+    set_text(tb3.text_frame, "(c) Solver | 솔버  →  one line",
+             size=16, color=ACCENT_COLOR, bold=True)
+
+    code_c = "p = np.linalg.solve(A, E_inc)   # entire CDA -> one line!"
+    code_c_img = render_code(code_c, fontsize=14)
+    add_image_fit(slide, code_c_img,
+                  Inches(0.7), Inches(4.6),
+                  Inches(6.0), Inches(0.7))
+
+    tb3b = add_textbox(slide, Inches(0.6), Inches(5.4), Inches(6.0), Inches(2.0))
+    tf = tb3b.text_frame
+    tf.word_wrap = True
+    add_paragraph(tf, "▸  Verification Test 4: residual = 5×10⁻¹⁶",
+                  size=14, color=PASS_COLOR, bold=True)
+    add_paragraph(tf, "    선형 시스템이 기계 정밀도로 정확히 풀림",
+                  size=12, color=MUTED_COLOR, space_before=Pt(0))
+    add_paragraph(tf, "▸  Numpy broadcasting → N=320 까지 ~1초",
+                  size=14, color=TITLE_COLOR, bold=True, space_before=Pt(8))
+    add_paragraph(tf, "    O(N²) 행렬 구성, O(N³) 풀이",
+                  size=12, color=MUTED_COLOR, space_before=Pt(0))
+
+    # ----- Bottom-right: Polarizability -----
+    tb4 = add_textbox(slide, Inches(6.9), Inches(4.1), Inches(6.0), Inches(0.5))
+    set_text(tb4.text_frame, "(d) Lorentzian polarizability | 분극률",
+             size=16, color=ACCENT_COLOR, bold=True)
+
+    code_d = (
+        "@dataclass\n"
+        "class LorentzAlpha:\n"
+        "    omega0: float\n"
+        "    gamma:  float = 0.2\n"
+        "    F:      float = 1.0\n"
+        "    def __call__(self, omega):\n"
+        "        d = self.omega0**2 - omega**2 - 1j*self.gamma*omega\n"
+        "        return self.F / d"
+    )
+    code_d_img = render_code(code_d, fontsize=11)
+    add_image_fit(slide, code_d_img,
+                  Inches(6.9), Inches(4.55),
+                  Inches(6.2), Inches(2.4))
+
+
 def slide_verification_table(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    make_slide_header(slide, 3, "Verification Results  —  10 / 10 PASS",
+    make_slide_header(slide, 4, "Verification Results  —  10 / 10 PASS",
                       "검증 결과 — 10/10 통과")
 
     tests = [
@@ -312,7 +422,7 @@ def slide_verification_table(prs):
 
 def slide_test7_highlight(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    make_slide_header(slide, 4, "Key Physical Finding — Test 7",
+    make_slide_header(slide, 5, "Key Physical Finding — Test 7",
                       "주목할 물리 — Test 7")
 
     tb = add_textbox(slide, Inches(0.6), Inches(1.55), Inches(5.8), Inches(5.5))
@@ -354,7 +464,7 @@ def slide_test7_highlight(prs):
 
 def slide_baseline_results(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    make_slide_header(slide, 5, "Baseline Result", "베이스라인 결과")
+    make_slide_header(slide, 6, "Baseline Result", "베이스라인 결과")
 
     tb = add_textbox(slide, Inches(0.6), Inches(1.55), Inches(5.8), Inches(5.5))
     tf = tb.text_frame
@@ -392,7 +502,7 @@ def slide_baseline_results(prs):
 
 def slide_period_sweep(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    make_slide_header(slide, 6, "First Scan — Period Sweep",
+    make_slide_header(slide, 7, "First Scan — Period Sweep",
                       "첫 스윕 결과 — 주기 스윕")
 
     tb = add_textbox(slide, Inches(0.6), Inches(1.55), Inches(5.8), Inches(5.5))
@@ -438,7 +548,7 @@ def slide_period_sweep(prs):
 
 def slide_difficulties(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    make_slide_header(slide, 7, "Main Difficulties", "현재 주요 어려움")
+    make_slide_header(slide, 8, "Main Difficulties", "현재 주요 어려움")
 
     # Difficulty 1
     shape1 = slide.shapes.add_shape(
@@ -491,7 +601,7 @@ def slide_difficulties(prs):
 
 def slide_next_plan(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    make_slide_header(slide, 8, "Next Week's Plan", "다음 주 계획")
+    make_slide_header(slide, 9, "Next Week's Plan", "다음 주 계획")
 
     tb = add_textbox(slide, Inches(0.7), Inches(1.6), Inches(5.8), Inches(5.5))
     tf = tb.text_frame
@@ -530,6 +640,7 @@ def main():
     title_slide(prs)
     slide_question(prs)
     slide_baseline(prs)
+    slide_code_walkthrough(prs)
     slide_verification_table(prs)
     slide_test7_highlight(prs)
     slide_baseline_results(prs)

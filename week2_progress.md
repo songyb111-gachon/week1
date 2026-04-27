@@ -31,7 +31,66 @@
 
 ---
 
-## 3. Verification Results: 10 / 10 PASS | 검증 결과: 10/10 통과
+## 3. Code Walk-Through | 핵심 코드 설명
+
+### (a) Green's function | Green 함수
+
+수식: $G(r) = \frac{i}{4} H_0^{(1)}(k_0 r)$ → 한 줄짜리 코드
+
+```python
+def greens_2d(r, k0=K0):
+    return 0.25j * hankel1(0, k0 * r)
+```
+
+- `scipy.special.hankel1` 로 Hankel 함수 사용
+- 벡터화 되어 있어 거리 배열을 한 번에 처리 가능
+
+### (b) Interaction matrix builder | 상호작용 행렬 빌더
+
+수식: $A_{ij} = 1/\alpha_i$ (대각), $-G(r_{ij})$ (비대각)
+
+```python
+def build_interaction_matrix(positions, alphas, k0=K0):
+    dx = positions[:, None] - positions[None, :]
+    r  = np.abs(dx)
+    np.fill_diagonal(r, 1.0)            # avoid r=0 in off-diagonal
+    A = -greens_2d(r, k0=k0)             # off-diagonal: -G(r_ij)
+    np.fill_diagonal(A, 1.0 / alphas)    # diagonal: 1/alpha_i
+    return A
+```
+
+- Numpy broadcasting 으로 모든 거리쌍 한 번에 계산
+- O(N²) 행렬 구성 → N=320 까지도 1초 이내
+
+### (c) Solver | 솔버
+
+```python
+p = np.linalg.solve(A, E_inc)            # one line!
+```
+
+- 핵심 물리가 결국 한 줄짜리 선형대수로 환원됨
+- Verification Test 4: residual = 5×10⁻¹⁶ 으로 정확성 확인
+
+### (d) Polarizability model | 분극률 모델
+
+```python
+@dataclass
+class LorentzAlpha:
+    omega0: float
+    gamma:  float = 0.2
+    F:      float = 1.0
+
+    def __call__(self, omega):
+        denom = self.omega0**2 - omega**2 - 1j*self.gamma*omega
+        return self.F / denom
+```
+
+- `omega0` 변경 → 메타 원자 기하 변화 모사
+- Non-uniform array: `omega0` 를 원자마다 다르게 → graded α
+
+---
+
+## 4. Verification Results: 10 / 10 PASS | 검증 결과: 10/10 통과
 
 | # | Test | Result |
 |---|------|--------|
@@ -54,7 +113,7 @@
 
 ---
 
-## 4. Baseline Result | 베이스라인 결과
+## 5. Baseline Result | 베이스라인 결과
 
 ### Uniform array, N = 31, P = 0.6 λ
 | Quantity | Value |
@@ -68,7 +127,7 @@
 
 ---
 
-## 5. First Scan: Period Sweep | 첫 스윕 결과
+## 6. First Scan: Period Sweep | 첫 스윕 결과
 
 ### Uniform vs non-uniform array
 | P / λ | Uniform | Non-uniform |
@@ -87,7 +146,7 @@
 
 ---
 
-## 6. Main Current Difficulty | 현재 주요 어려움
+## 7. Main Current Difficulty | 현재 주요 어려움
 
 ### (a) Lattice-resonance divergence | 격자 공명 발산
 - Matrix nearly singular at P ≈ m·λ
@@ -101,7 +160,7 @@
 
 ---
 
-## 7. Next Week's Plan | 다음 주 계획
+## 8. Next Week's Plan | 다음 주 계획
 
 ### Primary comparison | 메인 비교
 - **Uniform vs non-uniform** detailed analysis
